@@ -11,17 +11,17 @@ import {
 import type { ToolNavItem } from "@/types/tools";
 
 export const TOOLS: ToolNavItem[] = [
-  { name: "Formatter", path: "/tools/json-formatter", icon: AlignLeft },
-  { name: "Validator", path: "/tools/json-validator", icon: CheckSquare },
-  { name: "Minifier", path: "/tools/json-minifier", icon: Minimize2 },
-  { name: "Compare", path: "/tools/json-compare", icon: ArrowLeftRight },
+  { name: "Formatter", path: "/json-tools", icon: AlignLeft },
+  { name: "Validator", path: "/json-tools", icon: CheckSquare },
+  { name: "Minifier", path: "/json-tools", icon: Minimize2 },
+  { name: "Compare", path: "/json-tools", icon: ArrowLeftRight },
 ];
 
 export const GENERATORS: ToolNavItem[] = [
-  { name: "Schema Generator", path: "/tools/json-schema-generator", icon: FileJson },
-  { name: "To TypeScript", path: "/tools/json-to-typescript", icon: FileCode2 },
-  { name: "To SQL", path: "/tools/json-to-sql", icon: Database },
-  { name: "To CSV", path: "/tools/json-to-csv", icon: Table },
+  { name: "Schema Generator", path: "/json-tools", icon: FileJson },
+  { name: "To TypeScript", path: "/json-tools", icon: FileCode2 },
+  { name: "To SQL", path: "/json-tools", icon: Database },
+  { name: "To CSV", path: "/json-tools", icon: Table },
 ];
 
 export const FORMATTER_SAMPLE = '{\n  "example": "data"\n}';

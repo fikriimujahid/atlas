@@ -24,14 +24,14 @@ export default function Home() {
             Format, Validate, Convert, and Understand JSON instantly. Eliminate formatting syntax errors and let AI explain complex payloads.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/tools/json-formatter">
+            <Link to="/json-tools">
               <Button size="lg" className="w-full sm:w-auto text-base h-12 px-8">
                 Start Formatting <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
-            <Link to="/ai">
+            <Link to="/json-tools">
               <Button size="lg" variant="outline" className="w-full sm:w-auto text-base h-12 px-8">
-                Try AI Assistant
+                Try AI Tools
               </Button>
             </Link>
           </div>
@@ -50,7 +50,7 @@ export default function Home() {
             {TOOLS.map((tool) => {
               const Icon = tool.icon;
               return (
-                <Link key={tool.path} to={tool.path}>
+                <Link key={tool.name} to={tool.path}>
                   <div className="group relative overflow-hidden rounded-xl border bg-card p-6 h-full transition-all hover:shadow-md hover:border-primary/50 cursor-pointer flex flex-col items-start gap-4">
                     <div className="rounded-lg bg-primary/10 p-3 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <Icon className="w-6 h-6" />
@@ -92,8 +92,8 @@ export default function Home() {
               ))}
             </ul>
             <div className="pt-4">
-              <Link to="/ai">
-                <Button>Launch AI Assistant</Button>
+              <Link to="/json-tools">
+                <Button>Try AI in JSON Tools</Button>
               </Link>
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
                 <div className="w-3 h-3 rounded-full bg-amber-500"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="ml-2 text-xs font-mono text-muted-foreground">json-ai.com/ai</div>
+                <div className="ml-2 text-xs font-mono text-muted-foreground">json-ai.com/json-tools</div>
               </div>
               <div className="space-y-4 font-mono text-sm">
                 <div className="p-3 bg-muted rounded-lg text-foreground w-11/12 ml-auto">

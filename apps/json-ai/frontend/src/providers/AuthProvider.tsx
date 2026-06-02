@@ -4,6 +4,7 @@ import { createContext, useEffect, useState, type ReactNode } from "react";
 import { loginApi } from "@/services/auth/loginApi";
 import { logoutApi } from "@/services/auth/logoutApi";
 import { registerApi } from "@/services/auth/registerApi";
+import { googleSignInApi } from "@/services/auth/googleSignInApi";
 import { getStoredSession } from "@/services/auth/session";
 import type { AuthContextValue, AuthSession, AuthStatus, LoginInput, RegisterInput } from "@/types/auth";
 
@@ -57,6 +58,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     setStatus(nextState.status);
   }
 
+  async function googleSignIn() {
+    const session = await googleSignInApi();
+    const nextState = applySession(session);
+
+    setUser(nextState.user);
+    setAccessToken(nextState.accessToken);
+    setStatus(nextState.status);
+  }
+
   async function logout() {
     await logoutApi();
     const nextState = applySession(null);
@@ -67,7 +77,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ status, user, accessToken, login, register, logout }}>
+    <AuthContext.Provider value={{ status, user, accessToken, login, register, googleSignIn, logout }}>
       {children}
     </AuthContext.Provider>
   );
