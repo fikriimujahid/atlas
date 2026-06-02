@@ -1,13 +1,25 @@
 "use client";
 
-import { Link, useLocation } from "@/lib/router";
+import { Link } from "@/lib/router";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles } from "lucide-react";
-import { GENERATORS, TOOLS } from "@/constants/tools";
+import { Sparkles, Plus, MessageSquare, Trash2, LogOut, LayoutDashboard, LogIn } from "lucide-react";
 
-export default function Sidebar() {
-  const location = useLocation();
+export interface Conversation {
+  id: string;
+  title: string;
+  updatedAt: Date;
+}
+
+interface SidebarProps {
+  conversations: Conversation[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  onNew: () => void;
+  onDelete: (id: string) => void;
+}
+
+export default function Sidebar({ conversations, activeId, onSelect, onNew, onDelete }: SidebarProps) {
   const router = useRouter();
   const { status, user, logout } = useAuth();
 
@@ -16,95 +28,139 @@ export default function Sidebar() {
     router.replace("/");
   }
 
+  // Group conversations by date
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const groups: { label: string; items: Conversation[] }[] = [
+    {
+      label: "Today",
+      items: conversations.filter((c) => c.updatedAt >= today),
+    },
+    {
+      label: "Yesterday",
+      items: conversations.filter((c) => c.updatedAt >= yesterday && c.updatedAt < today),
+    },
+    {
+      label: "Previous 7 days",
+      items: conversations.filter((c) => c.updatedAt >= sevenDaysAgo && c.updatedAt < yesterday),
+    },
+    {
+      label: "Older",
+      items: conversations.filter((c) => c.updatedAt < sevenDaysAgo),
+    },
+  ].filter((g) => g.items.length > 0);
+
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-slate-200 bg-white flex-col hidden lg:flex">
-      <div className="p-6 flex items-center gap-2 border-b border-slate-100">
-        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">J</div>
-        <div>
-          <h1 className="font-bold text-lg leading-tight">JSON-AI</h1>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">The AI Toolkit</p>
-        </div>
-      </div>
-      
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-hide">
-        <div className="text-[11px] font-bold text-slate-400 uppercase px-3 py-2">Toolbox</div>
-        {TOOLS.map((tool) => {
-          const Icon = tool.icon;
-          const isActive = location.pathname === tool.path;
-          return (
-            <Link
-              key={tool.path}
-              to={tool.path}
-              className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
-                isActive 
-                  ? "bg-indigo-50 text-indigo-700" 
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {tool.name}
-            </Link>
-          );
-        })}
-
-        <div className="mt-6 text-[11px] font-bold text-slate-400 uppercase px-3 py-2">Generators</div>
-        {GENERATORS.map((tool) => {
-          const Icon = tool.icon;
-          const isActive = location.pathname === tool.path;
-          return (
-            <Link
-              key={tool.path}
-              to={tool.path}
-              className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
-                isActive 
-                  ? "bg-indigo-50 text-indigo-700" 
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {tool.name}
-            </Link>
-          );
-        })}
-
-        <div className="mt-6 text-[11px] font-bold text-slate-400 uppercase px-3 py-2">AI Assistant</div>
-        <Link
-          to="/ai"
-          className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
-            location.pathname === "/ai"
-              ? "bg-indigo-50 text-indigo-700" 
-              : "text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          <Sparkles className="h-4 w-4" />
-          AI Chat
+    <aside className="w-64 flex-shrink-0 border-r bg-card flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 flex items-center justify-between border-b shrink-0">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-sm">J</div>
+          <span className="font-bold text-sm">JSON-AI</span>
         </Link>
+        <button
+          onClick={onNew}
+          title="New chat"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* New chat button */}
+      <div className="px-3 pt-3 shrink-0">
+        <button
+          onClick={onNew}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+        >
+          <Sparkles className="w-4 h-4" />
+          New conversation
+        </button>
+      </div>
+
+      {/* History list */}
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4 scrollbar-hide min-h-0">
+        {groups.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-8 px-4">
+            No conversations yet. Start a new chat!
+          </p>
+        )}
+        {groups.map((group) => (
+          <div key={group.label}>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-3 mb-1">
+              {group.label}
+            </p>
+            {group.items.map((conv) => (
+              <div
+                key={conv.id}
+                className={`group flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                  activeId === conv.id
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                }`}
+                onClick={() => onSelect(conv.id)}
+              >
+                <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                <span className="flex-1 truncate">{conv.title}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(conv.id); }}
+                  className="shrink-0 opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-100 bg-slate-50">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 overflow-hidden">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-slate-400 p-1"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-          </div>
-          <div className="text-xs font-medium">
-            {status === "authenticated" && user ? user.name : "Guest User"}
-            <p className="text-[10px] text-slate-400">{status === "authenticated" && user ? `${user.plan} Plan` : "Free Plan"}</p>
-          </div>
-        </div>
-        <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-          <div className="h-full bg-indigo-500 w-[65%]"></div>
-        </div>
-        <p className="text-[10px] text-slate-500 mt-2 text-center uppercase tracking-tighter">AI Tokens: 6,500 / 10,000</p>
+      {/* Footer */}
+      <div className="p-3 border-t shrink-0 space-y-1">
         {status === "authenticated" && user ? (
-          <div className="mt-3 grid gap-2">
-            <Link to="/dashboard" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-center text-[11px] font-semibold text-slate-600">Dashboard</Link>
-            <button onClick={handleLogout} className="w-full rounded-md bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white">Log Out</button>
-          </div>
+          <>
+            <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary uppercase shrink-0">
+                {user.name?.[0] ?? "U"}
+              </div>
+              <span className="flex-1 truncate text-xs font-medium text-foreground">{user.name}</span>
+            </div>
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          </>
         ) : (
-          <div className="mt-3 grid gap-2">
-            <Link to="/login" className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-center text-[11px] font-semibold text-slate-600">Log In</Link>
-            <Link to="/register" className="w-full rounded-md bg-indigo-600 px-3 py-2 text-center text-[11px] font-semibold text-white">Create Account</Link>
-          </div>
+          <>
+            <Link
+              to="/login"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              Log in
+            </Link>
+            <Link
+              to="/register"
+              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+            >
+              Create free account
+            </Link>
+          </>
         )}
       </div>
     </aside>
